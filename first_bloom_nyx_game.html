@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Bloom — A Nyx Colony Game</title>
+<style>
+:root{--lav:#d9aaff;--pink:#ffb6fa;--deep:#080516}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#080516;color:#f5e4ff;font-family:Georgia,'Times New Roman',serif}
+#fb-app{--lav:#d9aaff;--pink:#ffb6fa;--deep:#080516;color:#f5e4ff;background:#080516;border:1px solid #9a5dcc;border-radius:17px;overflow:hidden;position:relative;max-width:900px;margin:0 auto}
+#fb-app .sky{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 48% 8%,#5e23865c,transparent 38%),radial-gradient(ellipse at 90% 30%,#391d7055,transparent 40%),radial-gradient(ellipse at 10% 55%,#71358b33,transparent 35%),radial-gradient(ellipse at 50% 90%,#4e267555,transparent 38%);overflow:hidden}
+#fb-app .stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 9%,#fff,transparent),radial-gradient(2px 2px at 77% 12%,#dba4ff,transparent),radial-gradient(1px 1px at 34% 21%,white,transparent),radial-gradient(1px 1px at 91% 25%,white,transparent),radial-gradient(2px 2px at 61% 34%,#f7c6ff,transparent),radial-gradient(1px 1px at 22% 40%,white,transparent),radial-gradient(1px 1px at 49% 15%,white,transparent),radial-gradient(2px 2px at 85% 52%,#cda4ff,transparent),radial-gradient(1px 1px at 8% 71%,white,transparent),radial-gradient(1px 1px at 72% 78%,white,transparent),radial-gradient(2px 2px at 41% 87%,#e2b1ff,transparent);pointer-events:none}
+#fb-app .inner{position:relative;padding:22px 17px 19px;z-index:1}
+#fb-app .eyebrow{font:10px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;color:#cfa4ff;text-align:center}
+#fb-app h1{font-size:clamp(38px,8vw,64px);font-weight:400;letter-spacing:5px;text-align:center;margin:5px 0 0;color:#e7c5ff;text-shadow:0 0 24px #bd71ff8a}
+#fb-app .sub{font:10px Arial,sans-serif;letter-spacing:4px;text-align:center;color:#d9b6ed;margin-top:3px}
+#fb-app .intro{max-width:470px;margin:17px auto 20px;text-align:center;color:#e0c9f4;font-size:14px;line-height:1.6}
+#fb-app .progressbox{max-width:520px;margin:0 auto 17px;border:1px solid #9663b5;border-radius:10px;background:#10091bbf;padding:12px 14px}
+#fb-app .progressline{display:flex;justify-content:space-between;gap:8px;align-items:center;font:10px Arial,sans-serif;letter-spacing:2px;text-transform:uppercase}
+#fb-app .count{font-size:16px;letter-spacing:1px;color:#f0ccff}
+#fb-app .bar{height:5px;background:#30203d;border-radius:10px;margin-top:11px;overflow:hidden}
+#fb-app .fill{height:100%;width:0;background:linear-gradient(90deg,#a66bff,#ffc8fb);box-shadow:0 0 12px #d9aaff;transition:width .4s}
+#fb-app .glasshouse{position:relative;max-width:540px;margin:auto;border:1px solid #9567b2;border-radius:48% 48% 12px 12px / 13% 13% 12px 12px;padding:17px 12px 12px;background:linear-gradient(180deg,#2913456e,#100a20b8 68%,#1d1030);box-shadow:inset 0 0 35px #b86aff18,0 0 20px #7130a426}
+#fb-app .arch{position:absolute;top:0;bottom:0;left:50%;width:1px;background:#d1a4f14b;pointer-events:none}
+#fb-app .roof{position:absolute;top:0;left:12%;right:12%;height:100%;border-left:1px solid #c58de35c;border-right:1px solid #c58de35c;border-radius:50% 50% 0 0;pointer-events:none}
+#fb-app .glasslabel{text-align:center;font:9px Arial,sans-serif;letter-spacing:3px;color:#d9b3f3;margin:6px 0 14px}
+#fb-app .beds{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#fb-app .bed{min-width:0;aspect-ratio:1/1.13;border:1px dashed #9265b1;border-radius:9px;background:linear-gradient(160deg,#28143b99,#10091cdd);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:.2s;cursor:pointer;overflow:hidden}
+#fb-app .bed:before{content:"";position:absolute;inset:4px;border:1px solid #9f6bc42b;border-radius:6px;pointer-events:none}
+#fb-app .bed .hole{font-size:25px;color:#a67ec6;opacity:.75}
+#fb-app .bed .bedlabel{font:8px Arial,sans-serif;letter-spacing:1px;color:#c6a4df;margin-top:6px;text-align:center}
+#fb-app .bed .planted{font-size:clamp(29px,7vw,44px);filter:drop-shadow(0 0 11px #e4a2ff);animation:fb-bloom .65s ease-out}
+#fb-app .bed .species{font-size:9px;color:#e8c9ff;margin-top:3px;text-align:center}
+#fb-app .bed.ready{border-style:solid;border-color:#edb9ff;background:radial-gradient(ellipse,#6c39845e,#120a20)}
+#fb-app .bed.over{background:#70418b77;border-color:#ffe1ff;box-shadow:inset 0 0 20px #dc9aff65}
+#fb-app .bed .spark{position:absolute;top:5px;right:7px;color:#ffe0ff;font-size:13px}
+@keyframes fb-bloom{0%{transform:scale(.15) rotate(-25deg);opacity:0}70%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+#fb-app .gardenhint{text-align:center;font:10px Arial,sans-serif;letter-spacing:1px;color:#bca1d0;margin:12px 0 4px}
+#fb-app .traytitle{text-align:center;margin:24px 0 5px;font-size:20px;font-weight:400;color:#ebd2ff}
+#fb-app .traydesc{text-align:center;color:#bda2d4;font:10px Arial,sans-serif;letter-spacing:1px;margin-bottom:13px}
+#fb-app .tray{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;max-width:510px;margin:auto}
+#fb-app .seed{background:#160d24;border:1px solid #6d4887;border-radius:8px;min-width:0;padding:8px 2px 7px;text-align:center;cursor:grab;touch-action:manipulation;transition:.2s;user-select:none}
+#fb-app .seed .flower{display:block;font-size:clamp(20px,5vw,31px);filter:drop-shadow(0 0 6px #c07bff9c)}
+#fb-app .seed .seedname{display:block;font:8px Arial,sans-serif;color:#d7b9f1;margin-top:5px;overflow-wrap:anywhere}
+#fb-app .seed.selected{border-color:#ffd5ff;background:#4a285b;box-shadow:0 0 15px #b46be85c;transform:translateY(-3px)}
+#fb-app .seed.used{opacity:.24;cursor:default;filter:grayscale(.7)}
+#fb-app .seed:focus-visible,#fb-app .bed:focus-visible{outline:2px solid white;outline-offset:3px}
+#fb-app .actions{display:flex;justify-content:center;gap:9px;margin-top:17px;flex-wrap:wrap}
+#fb-app button{font:10px Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#f2dfff;background:#251235;border:1px solid #9d70b9;border-radius:5px;padding:11px 14px;cursor:pointer}
+#fb-app button:hover{background:#49245c}
+#fb-app .finish{display:none;text-align:center;margin:18px auto 0;max-width:500px;padding:19px 13px;border:1px solid #dba7ff;border-radius:10px;background:linear-gradient(140deg,#381c49ed,#160d28f2);box-shadow:0 0 25px #ac66ff35;animation:fb-bloom .8s ease-out}
+#fb-app .finish.show{display:block}
+#fb-app .finish h2{font-weight:400;font-size:29px;color:#f2caff;margin:4px 0 10px}
+#fb-app .finish p{font-size:14px;line-height:1.65;color:#e4c9f7}
+#fb-app .bigflower{font-size:35px;letter-spacing:7px;filter:drop-shadow(0 0 12px #dba5ff)}
+#fb-app .foot{text-align:center;font:9px Arial,sans-serif;letter-spacing:3px;color:#a98abd;margin-top:23px}
+#fb-app .notice{text-align:center;font-size:12px;color:#e8caff;min-height:18px;margin-top:10px}
+#fb-app .confetti{font-size:17px;color:#e7bcff;letter-spacing:9px;animation:fb-glow 2s infinite alternate}
+@keyframes fb-glow{to{text-shadow:0 0 18px #f3b4ff}}
+@media(max-width:370px){#fb-app .inner{padding:18px 10px}#fb-app .beds{gap:6px}#fb-app .tray{gap:4px}#fb-app .seed .seedname{font-size:7px}#fb-app .glasshouse{padding:12px 8px}#fb-app .bed .bedlabel{font-size:7px}}
+@media(prefers-reduced-motion:reduce){#fb-app *{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="fb-app">
+<div class="sky"><div class="stars"></div></div>
+<div class="inner">
+  <div class="eyebrow">Nyx Colony · Mars Expo 2026</div>
+  <h1>First Bloom</h1>
+  <div class="sub">✧ GROW · SHARE · CELEBRATE ✧</div>
+  <p class="intro">Beneath the stars of Mars, something beautiful is taking root. Plant six moonflowers in the colony greenhouse and bring the first harvest celebration to life.</p>
+  <div class="progressbox">
+    <div class="progressline"><span>✦ Greenhouse progress</span><span class="count" id="fb-count">0 / 6 planted</span></div>
+    <div class="bar"><div class="fill" id="fb-fill"></div></div>
+  </div>
+  <div class="glasshouse">
+    <div class="roof"></div><div class="arch"></div>
+    <div class="glasslabel">☾ THE LUNAR CONSERVATORY ☾</div>
+    <div class="beds" id="fb-beds">
+      <div class="bed" data-bed="0" role="button" tabindex="0" aria-label="Planting bed 1"><span class="hole">✧</span><span class="bedlabel">BED I · DAWN</span></div>
+      <div class="bed" data-bed="1" role="button" tabindex="0" aria-label="Planting bed 2"><span class="hole">✧</span><span class="bedlabel">BED II · DUSK</span></div>
+      <div class="bed" data-bed="2" role="button" tabindex="0" aria-label="Planting bed 3"><span class="hole">✧</span><span class="bedlabel">BED III · STARS</span></div>
+      <div class="bed" data-bed="3" role="button" tabindex="0" aria-label="Planting bed 4"><span class="hole">✧</span><span class="bedlabel">BED IV · DREAMS</span></div>
+      <div class="bed" data-bed="4" role="button" tabindex="0" aria-label="Planting bed 5"><span class="hole">✧</span><span class="bedlabel">BED V · HOPE</span></div>
+      <div class="bed" data-bed="5" role="button" tabindex="0" aria-label="Planting bed 6"><span class="hole">✧</span><span class="bedlabel">BED VI · HOME</span></div>
+    </div>
+    <div class="gardenhint" id="fb-hint">CHOOSE A MOONFLOWER BELOW, THEN SELECT AN EMPTY BED</div>
+  </div>
+  <h2 class="traytitle">The Moonflower Collection</h2>
+  <div class="traydesc">DRAG A FLOWER INTO A BED · OR TAP TO PLANT</div>
+  <div class="tray" id="fb-tray">
+    <div class="seed" draggable="true" data-flower="0" role="button" tabindex="0" aria-label="Moonflower Stardust"><span class="flower">✿</span><span class="seedname">Stardust</span></div>
+    <div class="seed" draggable="true" data-flower="1" role="button" tabindex="0" aria-label="Moonflower Luna"><span class="flower">❀</span><span class="seedname">Luna</span></div>
+    <div class="seed" draggable="true" data-flower="2" role="button" tabindex="0" aria-label="Moonflower Nebula"><span class="flower">✾</span><span class="seedname">Nebula</span></div>
+    <div class="seed" draggable="true" data-flower="3" role="button" tabindex="0" aria-label="Moonflower Comet"><span class="flower">❋</span><span class="seedname">Comet</span></div>
+    <div class="seed" draggable="true" data-flower="4" role="button" tabindex="0" aria-label="Moonflower Aurora"><span class="flower">✿</span><span class="seedname">Aurora</span></div>
+    <div class="seed" draggable="true" data-flower="5" role="button" tabindex="0" aria-label="Moonflower Eclipse"><span class="flower">❀</span><span class="seedname">Eclipse</span></div>
+  </div>
+  <div class="notice" id="fb-notice" aria-live="polite">Six flowers. One home. Let's grow something wonderful.</div>
+  <div class="actions"><button id="fb-reset" type="button">↻ Start again</button></div>
+  <div class="finish" id="fb-finish" aria-live="polite">
+    <div class="confetti">✧ · ⋆ ✦ ⋆ · ✧</div><div class="bigflower">✿ ❀ ✾</div>
+    <h2>First Bloom is complete!</h2>
+    <p>Six moonflowers now shine beneath the Martian sky. What began as seeds has become something greater: a home, a harvest, and a reason to celebrate together.</p>
+    <p><em>Under Nyx, we adapt.</em></p><div class="confetti">✧ · ⋆ ✦ ⋆ · ✧</div>
+    <button id="fb-again" type="button">Grow another garden</button>
+  </div>
+  <div class="foot">A COLONY BUILT ON PEOPLE · POWERED BY POSSIBILITY</div>
+</div>
+</div>
+<script>
+(function(){
+const root=document.getElementById('fb-app');
+const names=['Stardust','Luna','Nebula','Comet','Aurora','Eclipse'];
+const symbols=['✿','❀','✾','❋','✿','❀'];
+const planted=Array(6).fill(null);let selected=null;
+const beds=[...root.querySelectorAll('.bed')],seeds=[...root.querySelectorAll('.seed')];
+const count=root.querySelector('#fb-count'),fill=root.querySelector('#fb-fill'),notice=root.querySelector('#fb-notice'),hint=root.querySelector('#fb-hint'),finish=root.querySelector('#fb-finish');
+function announce(s){notice.textContent=s}
+function plant(b,f){
+ if(planted[b]!==null){announce('This bed already has a flower. Choose another glowing bed ✧');return}
+ if(planted.includes(f)){announce('That moonflower is already growing! Choose another seed.');return}
+ planted[b]=f;selected=null;render();const n=planted.filter(x=>x!==null).length;
+ announce(n===6?'Every moonflower has found its home. Your garden is blooming!':'Beautiful! '+names[f]+' is planted. '+(6-n)+' moonflower'+(6-n===1?'':'s')+' left to grow.');
+}
+function render(){
+ const n=planted.filter(x=>x!==null).length;count.textContent=n+' / 6 planted';fill.style.width=(n/6*100)+'%';
+ beds.forEach((bed,b)=>{const f=planted[b];bed.classList.toggle('ready',f!==null);bed.classList.remove('over');
+ if(f!==null){bed.innerHTML='<span class="spark">✧</span><span class="planted">'+symbols[f]+'</span><span class="species">'+names[f]+'</span><span class="bedlabel">✦ ROOTED ✦</span>'}
+ else{bed.innerHTML='<span class="hole">✧</span><span class="bedlabel">BED '+['I','II','III','IV','V','VI'][b]+' · '+['DAWN','DUSK','STARS','DREAMS','HOPE','HOME'][b]+'</span>'}});
+ seeds.forEach((s,f)=>{s.classList.toggle('used',planted.includes(f));s.classList.toggle('selected',selected===f);s.setAttribute('aria-pressed',selected===f?'true':'false');s.draggable=!planted.includes(f)});
+ finish.classList.toggle('show',n===6);hint.textContent=n===6?'✧ A GARDEN OF OUR OWN ✧':'CHOOSE A MOONFLOWER BELOW, THEN SELECT AN EMPTY BED';
+ if(n===6)selected=null;
+}
+seeds.forEach((s,f)=>{
+ s.addEventListener('click',()=>{if(planted.includes(f))return;selected=f;render();announce(names[f]+' selected! Now tap an empty greenhouse bed.')});
+ s.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();s.click()}});
+ s.addEventListener('dragstart',e=>{if(planted.includes(f)){e.preventDefault();return}selected=f;e.dataTransfer.setData('text/plain',String(f));e.dataTransfer.effectAllowed='move'});
+});
+beds.forEach((bed,b)=>{
+ bed.addEventListener('click',()=>{if(selected!==null)plant(b,selected);else if(planted[b]!==null)announce(names[planted[b]]+' is happily growing here. Choose another seed to plant!');else announce('Choose a moonflower seed first, then plant it here.')});
+ bed.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();bed.click()}});
+ bed.addEventListener('dragover',e=>{e.preventDefault();if(planted[b]===null)bed.classList.add('over')});
+ bed.addEventListener('dragleave',()=>bed.classList.remove('over'));
+ bed.addEventListener('drop',e=>{e.preventDefault();bed.classList.remove('over');const f=Number(e.dataTransfer.getData('text/plain'));if(Number.isInteger(f)&&f>=0&&f<6)plant(b,f)});
+});
+function reset(){planted.fill(null);selected=null;render();announce('A fresh greenhouse awaits. Let’s plant our moonflowers!')}
+root.querySelector('#fb-reset').addEventListener('click',reset);
+root.querySelector('#fb-again').addEventListener('click',()=>{reset();root.querySelector('.traytitle').scrollIntoView({behavior:'smooth',block:'center'})});
+render();
+})();
+</script>
+</body>
+</html>
